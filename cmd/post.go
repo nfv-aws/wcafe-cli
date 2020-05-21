@@ -1,18 +1,20 @@
 package cmd
 
 import (
-	// "crypto/rand"
-	// "encoding/binary"
 	"encoding/json"
 	"github.com/jmcvetta/napping"
-	// "github.com/nfv-aws/wcafe-api-controller/db"
-	// "github.com/nfv-aws/wcafe-api-controller/entity"
+
 	"github.com/spf13/cobra"
 	"log"
 	math_rand "math/rand"
 	"net/http"
 	"strconv"
 	"time"
+	// 以下、**TODO WCAF-123　**　で利用予定
+	// "crypto/rand"
+	// "encoding/binary"
+	// "github.com/nfv-aws/wcafe-api-controller/db"
+	// "github.com/nfv-aws/wcafe-api-controller/entity"
 )
 
 // postコマンド
@@ -26,6 +28,7 @@ func newPostCmd() *cobra.Command {
 	}
 	// postコマンドのオプションの追加
 	cmd.AddCommand(
+		// **TODO WCAF-123**
 		// newPostStoresCmd(),
 		// newPostPetsCmd(),
 		newPostUsersCmd(),
