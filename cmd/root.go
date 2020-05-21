@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"net/http"
 	"os"
 )
 
@@ -14,8 +12,6 @@ var (
 	// RootCmd defines root command
 	RootCmd = &cobra.Command{
 		Use: "wcafe",
-		// SilenceErrors: true,
-		// SilenceUsage:  true,
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Usage()
 		},
@@ -38,11 +34,4 @@ func Exit(err error, codes ...int) {
 		fmt.Println(err)
 	}
 	os.Exit(code)
-}
-
-func newDefaultClient() (*Client, error) {
-	endpointURL := viper.GetString("url")
-	httpClient := &http.Client{}
-	userAgent := fmt.Sprintf("wcafe/%s (%s)")
-	return newClient(endpointURL, httpClient, userAgent)
 }

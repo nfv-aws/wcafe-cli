@@ -1,19 +1,26 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"strconv"
-	"time"
-
-	"github.com/pkg/errors"
+	"github.com/nfv-aws/wcafe-cli/config"
 	"github.com/spf13/cobra"
+	"io/ioutil"
+	"net/http"
 )
 
+var (
+	endpoint string
+)
+
+// サブコマンドの追加
 func init() {
+	config.Configure()
+	endpoint = config.C.LB.Endpoint
 	RootCmd.AddCommand(newGetCmd())
+	RootCmd.AddCommand(newPostCmd())
 }
 
+// getコマンド
 func newGetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
@@ -22,9 +29,11 @@ func newGetCmd() *cobra.Command {
 			cmd.Help()
 		},
 	}
-
+	// getコマンドのオプションの追加
 	cmd.AddCommand(
 		newGetPetsCmd(),
+		newGetStoresCmd(),
+		newGetUsersCmd(),
 	)
 
 	return cmd
@@ -36,64 +45,56 @@ func newGetPetsCmd() *cobra.Command {
 		Short: "Get Pets list",
 		RunE:  runGetPetsCmd,
 	}
+	return cmd
+}
 
+func newGetStoresCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "stores",
+		Short: "Get stores list",
+		RunE:  runGetStoresCmd,
+	}
+	return cmd
+}
+
+func newGetUsersCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "users",
+		Short: "Get users list",
+		RunE:  runGetUsersCmd,
+	}
 	return cmd
 }
 
 func runGetPetsCmd(cmd *cobra.Command, args []string) error {
-	client, err := newDefaultClient()
-	if err != nil {
-		return errors.Wrap(err, "newClient failed:")
-	}
-
-	if len(args) == 0 {
-		return errors.New("GetID is required")
-	}
-
-	petsID, err := strconv.Atoi(args[0])
-	if err != nil {
-		return errors.Wrapf(err, "failed to parse GetID: %s", args[0])
-	}
-
-	req := PetsShowRequest{
-		ID: petsID,
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	res, err := client.GetPets(ctx, req)
-	if err != nil {
-		return errors.Wrapf(err, "GetPets was failed: req = %+v, res = %+v", req, res)
-	}
-
-	pets := res.Pets
-	fmt.Printf(
-		// 		"id: %s, name: %s, inserted_at: %v, updated_at: %v\n",
-		"id: %s, name: %s",
-		// 		pets.ID, pets.Name, pets.InsertedAt, pets.UpdatedAt,
-		pets.ID, pets.Name,
-	)
+	url := endpoint + "/api/v1/pets"
+	req, _ := http.NewRequest("GET", url, nil)
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+	byteArray, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(byteArray))
 
 	return nil
 }
 
-func (client *Client) GetPets(ctx context.Context, apiRequest PetsShowRequest) (*PetsShowResponse, error) {
-	subPath := fmt.Sprintf("/app_stacks/%d", apiRequest.ID)
-	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
-	if err != nil {
-		return nil, err
-	}
+func runGetStoresCmd(cmd *cobra.Command, args []string) error {
+	url := endpoint + "/api/v1/stores"
+	req, _ := http.NewRequest("GET", url, nil)
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+	byteArray, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(byteArray))
 
-	httpResponse, err := client.HTTPClient.Do(httpRequest)
-	if err != nil {
-		return nil, err
-	}
+	return nil
+}
 
-	var apiResponse PetsShowResponse
-	if err := decodeBody(httpResponse, &apiResponse); err != nil {
-		return nil, err
-	}
+func runGetUsersCmd(cmd *cobra.Command, args []string) error {
+	url := endpoint + "/api/v1/users"
+	req, _ := http.NewRequest("GET", url, nil)
+	client := new(http.Client)
+	resp, _ := client.Do(req)
+	byteArray, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(byteArray))
 
-	return &apiResponse, nil
+	return nil
 }

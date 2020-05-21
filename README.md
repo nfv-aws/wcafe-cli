@@ -1,10 +1,9 @@
 # wcafe CLI
 
 ## これなに
-curl文を実行するコマンドを作成するリポジトリ
+HTTPリクエストをLBに送るコマンドを作成するリポジトリ
 
 ## リポジトリクローン
-
 ```
 cd $GOPATH/src/github.com
 mkdir nfv-aws
@@ -15,9 +14,29 @@ git clone git@github.com:nfv-aws/wcafe-api-controller.git
 ### パッケージインストール
 ```
 go get github.com/spf13/cobra
-go get github.com/spf13/cobra/cobra
+go get github.com/jmcvetta/napping
 ```
 
-### 使い方（想定）
-wcafe get pets
-⇒curl localhost:8080/api/v1/pets | jq .　　が実行される。
+### 環境設定
+LBのエンドポイントを追加
+
+```
+vi ~/.bashrc
+
+export WCAFE_LB_ENDPOINT=endpoint
+
+source ~/.bashrc
+```
+
+### コマンドのインストール
+go build
+go install
+
+### 使い方
+#### getの場合
+wcafe-cli get stores
+wcafe-cli get pets
+wcafe-cli get users
+
+#### postの場合
+wcafe-cli post users
