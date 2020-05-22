@@ -2,25 +2,18 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/nfv-aws/wcafe-cli/config"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
 )
 
-var (
-	endpoint string
-)
-
-// サブコマンドの追加
+// コマンドの追加
 func init() {
-	config.Configure()
-	endpoint = config.C.LB.Endpoint
 	RootCmd.AddCommand(newGetCmd())
 	RootCmd.AddCommand(newPostCmd())
 }
 
-// getコマンド
+// getコマンドの定義
 func newGetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get",
@@ -29,7 +22,7 @@ func newGetCmd() *cobra.Command {
 			cmd.Help()
 		},
 	}
-	// getコマンドのオプションの追加
+	// サブコマンドの追加
 	cmd.AddCommand(
 		newGetPetsCmd(),
 		newGetStoresCmd(),
@@ -42,7 +35,7 @@ func newGetCmd() *cobra.Command {
 func newGetPetsCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "pets",
-		Short: "Get Pets list",
+		Short: "Get pets list",
 		RunE:  runGetPetsCmd,
 	}
 	return cmd
