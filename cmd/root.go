@@ -1,15 +1,12 @@
 package cmd
 
 import (
-	"fmt"
+	"github.com/nfv-aws/wcafe-cli/config"
 	"github.com/spf13/cobra"
-	"os"
 )
 
-var cfgFile string
-
 var (
-	// RootCmd defines root command
+	// ルートコマンドの設定
 	RootCmd = &cobra.Command{
 		Use: "wcafe",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -18,20 +15,11 @@ var (
 	}
 )
 
-func Run() {
-	RootCmd.Execute()
-}
+// LB endpoint
+var endpoint string
 
-// Exit finishes a runnning action.
-func Exit(err error, codes ...int) {
-	var code int
-	if len(codes) > 0 {
-		code = codes[0]
-	} else {
-		code = 2
-	}
-	if err != nil {
-		fmt.Println(err)
-	}
-	os.Exit(code)
+// コンフィグの呼び出し
+func init() {
+	config.Configure()
+	endpoint = config.C.LB.Endpoint
 }

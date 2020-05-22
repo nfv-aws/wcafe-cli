@@ -29,14 +29,19 @@ source ~/.bashrc
 ```
 
 ### コマンドのインストール
+```
 go build
 go install
+```
 
 ### 使い方
 #### getの場合
+```
 wcafe-cli get stores
 wcafe-cli get pets
 wcafe-cli get users
-
+```
 #### postの場合
+```
 wcafe-cli post users
+```

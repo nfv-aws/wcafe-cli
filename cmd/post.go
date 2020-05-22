@@ -17,16 +17,16 @@ import (
 	// "github.com/nfv-aws/wcafe-api-controller/entity"
 )
 
-// postコマンド
+// postコマンドの定義
 func newPostCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "post",
-		Short: "post resources",
+		Short: "post  a resource",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
 	}
-	// postコマンドのオプションの追加
+	// サブコマンドの追加
 	cmd.AddCommand(
 		// **TODO WCAF-123**
 		// newPostStoresCmd(),
@@ -79,9 +79,9 @@ func runPostUsersCmd(cmd *cobra.Command, args []string) error {
 
 	var jsonStr = []byte(`
 {
-    "number":` + strconv.Itoa(random_num) + `
+    "number":` + strconv.Itoa(random_num) + `,
+    "name":"gogogo"
 }`)
-
 	var data map[string]json.RawMessage
 	err := json.Unmarshal(jsonStr, &data)
 	if err != nil {
