@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/nfv-aws/wcafe-cli/config"
 	"github.com/spf13/cobra"
+
+	"github.com/nfv-aws/wcafe-cli/config"
 )
 
 var (
