@@ -1,7 +1,7 @@
 # wcafe CLI
 
 ## これなに
-HTTPリクエストをLBに送るコマンドを作成するリポジトリ
+HTTPリクエストを自身に送るコマンドを作成するリポジトリ
 
 ## リポジトリクローン
 ```
@@ -23,7 +23,7 @@ LBのエンドポイントを追加
 ```
 vi ~/.bashrc
 
-export WCAFE_LB_ENDPOINT=endpoint
+export WCAFE_VM_PRIVATE_DNS=private_dns
 
 source ~/.bashrc
 ```
@@ -43,5 +43,7 @@ wcafe-cli get users
 ```
 #### postの場合
 ```
+wcafe-cli post stores
+wcafe-cli post pets <store_id>
 wcafe-cli post users
 ```

@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/spf13/cobra"
 )
 
 // コマンドの追加
@@ -24,20 +25,11 @@ func newGetCmd() *cobra.Command {
 	}
 	// サブコマンドの追加
 	cmd.AddCommand(
-		newGetPetsCmd(),
 		newGetStoresCmd(),
+		newGetPetsCmd(),
 		newGetUsersCmd(),
 	)
 
-	return cmd
-}
-
-func newGetPetsCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "pets",
-		Short: "Get pets list",
-		RunE:  runGetPetsCmd,
-	}
 	return cmd
 }
 
@@ -46,6 +38,15 @@ func newGetStoresCmd() *cobra.Command {
 		Use:   "stores",
 		Short: "Get stores list",
 		RunE:  runGetStoresCmd,
+	}
+	return cmd
+}
+
+func newGetPetsCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "pets",
+		Short: "Get pets list",
+		RunE:  runGetPetsCmd,
 	}
 	return cmd
 }
@@ -59,8 +60,8 @@ func newGetUsersCmd() *cobra.Command {
 	return cmd
 }
 
-func runGetPetsCmd(cmd *cobra.Command, args []string) error {
-	url := endpoint + "/api/v1/pets"
+func runGetStoresCmd(cmd *cobra.Command, args []string) error {
+	url := "http://" + dns + ":8080/api/v1/stores"
 	req, _ := http.NewRequest("GET", url, nil)
 	client := new(http.Client)
 	resp, _ := client.Do(req)
@@ -70,8 +71,8 @@ func runGetPetsCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func runGetStoresCmd(cmd *cobra.Command, args []string) error {
-	url := endpoint + "/api/v1/stores"
+func runGetPetsCmd(cmd *cobra.Command, args []string) error {
+	url := "http://" + dns + ":8080/api/v1/pets"
 	req, _ := http.NewRequest("GET", url, nil)
 	client := new(http.Client)
 	resp, _ := client.Do(req)
@@ -82,7 +83,7 @@ func runGetStoresCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runGetUsersCmd(cmd *cobra.Command, args []string) error {
-	url := endpoint + "/api/v1/users"
+	url := "http://" + dns + ":8080/api/v1/users"
 	req, _ := http.NewRequest("GET", url, nil)
 	client := new(http.Client)
 	resp, _ := client.Do(req)

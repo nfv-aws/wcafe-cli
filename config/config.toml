@@ -1,2 +1,3 @@
-[lb]
-endpoint = "AWS_LB_ENDPOINT"
+[vm]
+private_dns = "AWS_PRIVATE_DNS"
+

@@ -1,15 +1,16 @@
 package config
 
 import (
-	"github.com/spf13/viper"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	LB struct {
-		Endpoint string
+	VM struct {
+		Private_dns string
 	}
 }
 
