@@ -15,11 +15,11 @@ var (
 	}
 )
 
-// LB endpoint
-var endpoint string
+// Private DNS
+var dns string
 
 // コンフィグの呼び出し
 func init() {
 	config.Configure()
-	endpoint = config.C.LB.Endpoint
+	dns = config.C.VM.Private_dns
 }

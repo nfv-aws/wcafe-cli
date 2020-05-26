@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/nfv-aws/wcafe-cli/cmd"
 	"os"
+
+	"github.com/nfv-aws/wcafe-cli/cmd"
 )
 
 func main() {
