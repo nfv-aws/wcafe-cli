@@ -4,9 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	// "io/ioutil"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,6 +15,8 @@ import (
 	"github.com/jmcvetta/napping"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/nfv-aws/wcafe-api-controller/entity"
 )
 
 // コマンドの追加
@@ -74,11 +76,12 @@ func RunStoresListCmd(cmd *cobra.Command, args []string) error {
 		return errors.Wrapf(err, "StoreList was failed:res = %+v", res)
 	}
 
-	stores := res.Store
-	fmt.Printf(
-		"id: %s, name: %s, tag: %s, address: %s, strong_point:%s, created_time:%s, updated_time:%s\n",
-		stores.Id, stores.Name, stores.Tag, stores.Address, stores.StrongPoint, stores.CreatedAt, stores.UpdatedAt,
-	)
+	stores := res.Stores
+	log.Println(stores)
+	// fmt.Printf(
+	// 	"id: %s, name: %s, tag: %s, address: %s, strong_point:%s, created_time:%s, updated_time:%s\n",
+	// 	stores.Id, stores.Name, stores.Tag, stores.Address, stores.StrongPoint, stores.CreatedAt, stores.UpdatedAt,
+	// )
 
 	return nil
 }
@@ -104,8 +107,10 @@ func (client *Client) StoreList(ctx context.Context) (*StoreShowResponse, error)
 	return &apiResponse, nil
 }
 
+type Stores entity.Stores
+
 type StoreShowResponse struct {
-	Store Store `json:"stores"`
+	Stores *[]Stores `json:"stores"`
 }
 
 // 以下、createの処理
