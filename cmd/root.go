@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"net/http"
 
 	"github.com/nfv-aws/wcafe-cli/config"
 )
@@ -23,4 +24,10 @@ var dns string
 func init() {
 	config.Configure()
 	dns = config.C.VM.Private_dns
+}
+
+func newDefaultClient() (*Client, error) {
+	endpointURL := "http://localhost:8080/api/v1"
+	httpClient := &http.Client{}
+	return newClient(endpointURL, httpClient)
 }

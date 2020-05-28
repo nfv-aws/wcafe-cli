@@ -18,8 +18,7 @@ type Client struct {
 }
 
 // コンストラクタの定義
-func NewClient(endpointURL string, httpClient *http.Client) (*Client, error) {
-	// urlStr = "http://localhost:8080/api/v1/users"
+func newClient(endpointURL string, httpClient *http.Client) (*Client, error) {
 
 	parsedURL, err := url.ParseRequestURI(endpointURL)
 	if err != nil {

@@ -66,8 +66,6 @@ func RunStoresListCmd(cmd *cobra.Command, args []string) error {
 		return errors.Wrap(err, "newClient failed:")
 	}
 
-	// req := StoreListRequest
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -76,17 +74,18 @@ func RunStoresListCmd(cmd *cobra.Command, args []string) error {
 		return errors.Wrapf(err, "StoreList was failed:res = %+v", res)
 	}
 
-	stores := res.Stores
+	stores := res.Store
 	fmt.Printf(
 		"id: %s, name: %s, tag: %s, address: %s, strong_point:%s, created_time:%s, updated_time:%s\n",
-		stores.ID, stores.Name, stores.Tag, stores.Address, stores.Strong_poioint, stores.Created_time, stores.Updatedtime,
+		stores.Id, stores.Name, stores.Tag, stores.Address, stores.StrongPoint, stores.CreatedAt, stores.UpdatedAt,
 	)
 
 	return nil
 }
 
+// stores listの処理
 func (client *Client) StoreList(ctx context.Context) (*StoreShowResponse, error) {
-	subPath := fmt.Sprintf("http://localhost:8080/api/v1/pets")
+	subPath := fmt.Sprintf("/stores")
 	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
 		return nil, err
@@ -105,17 +104,12 @@ func (client *Client) StoreList(ctx context.Context) (*StoreShowResponse, error)
 	return &apiResponse, nil
 }
 
-// 	url := "http://" + dns + ":8080/api/v1/stores"
-// 	req, _ := http.NewRequest("GET", url, nil)
-// 	client := new(http.Client)
-// 	resp, _ := client.Do(req)
-// 	byteArray, _ := ioutil.ReadAll(resp.Body)
-// 	fmt.Println(string(byteArray))
+type StoreShowResponse struct {
+	Store Store `json:"stores"`
+}
 
-// 	return nil
-// }
-
-// // ランダムな文字列の生成
+// 以下、createの処理
+// ランダムな文字列の生成
 func random() string {
 	var n uint64
 	binary.Read(rand.Reader, binary.LittleEndian, &n)
