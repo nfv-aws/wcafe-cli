@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
-	// "io/ioutil"
-	"context"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -15,8 +15,6 @@ import (
 	"github.com/jmcvetta/napping"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-
-	"github.com/nfv-aws/wcafe-api-controller/entity"
 )
 
 // コマンドの追加
@@ -61,7 +59,8 @@ func newStoresCreateCmd() *cobra.Command {
 	return cmd
 }
 
-// stores listの処理
+// 以下、stores listの処理
+// stores list の出力
 func RunStoresListCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
@@ -75,42 +74,32 @@ func RunStoresListCmd(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrapf(err, "StoreList was failed:res = %+v", res)
 	}
-
-	stores := res.Stores
-	log.Println(stores)
-	// fmt.Printf(
-	// 	"id: %s, name: %s, tag: %s, address: %s, strong_point:%s, created_time:%s, updated_time:%s\n",
-	// 	stores.Id, stores.Name, stores.Tag, stores.Address, stores.StrongPoint, stores.CreatedAt, stores.UpdatedAt,
-	// )
+	fmt.Println(res)
 
 	return nil
 }
 
-// stores listの処理
-func (client *Client) StoreList(ctx context.Context) (*StoreShowResponse, error) {
+// GET storesの呼び出し
+func (client *Client) StoreList(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/stores")
 	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
-		return nil, err
+		log.Println("newRequest Error")
+		return "error", err
 	}
 
 	httpResponse, err := client.HTTPClient.Do(httpRequest)
 	if err != nil {
-		return nil, err
+		log.Println("HTTPClient Do Error")
+		return "error", err
 	}
-
-	var apiResponse StoreShowResponse
-	if err := decodeBody(httpResponse, &apiResponse); err != nil {
-		return nil, err
+	defer httpResponse.Body.Close()
+	res, err := ioutil.ReadAll(httpResponse.Body)
+	if err != nil {
+		log.Println("ReadAll Error")
+		return "error", err
 	}
-
-	return &apiResponse, nil
-}
-
-type Stores entity.Stores
-
-type StoreShowResponse struct {
-	Stores *[]Stores `json:"stores"`
+	return string(res), nil
 }
 
 // 以下、createの処理
