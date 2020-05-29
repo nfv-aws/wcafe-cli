@@ -5,6 +5,7 @@ import (
 	//	"crypto/rand"
 	//	"encoding/binary"
 	//	"encoding/json"
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -119,8 +120,8 @@ func RunUsersCreateCmd(cmd *cobra.Command, args []string) error {
 // users createの処理
 func (client *Client) UserCreate(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/users")
-	body := `{"number":"12345678"}`
-	httpRequest, err := client.newRequest(ctx, "POST", subPath, body)
+	body := `{"number": 12345678}`
+	httpRequest, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(body)))
 	if err != nil {
 		log.Println("newRequest Error")
 		return "error", err
