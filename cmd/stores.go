@@ -1,16 +1,19 @@
 package cmd
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
+	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/jmcvetta/napping"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -42,7 +45,7 @@ func newStoresListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Get stores list",
-		RunE:  runStoresListCmd,
+		RunE:  RunStoresListCmd,
 	}
 	return cmd
 }
@@ -56,19 +59,51 @@ func newStoresCreateCmd() *cobra.Command {
 	return cmd
 }
 
-// stores listの処理
-func runStoresListCmd(cmd *cobra.Command, args []string) error {
-	url := "http://" + dns + ":8080/api/v1/stores"
-	req, _ := http.NewRequest("GET", url, nil)
-	client := new(http.Client)
-	resp, _ := client.Do(req)
-	byteArray, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(byteArray))
+// 以下、stores listの処理
+// stores list の出力
+func RunStoresListCmd(cmd *cobra.Command, args []string) error {
+	client, err := newDefaultClient()
+	if err != nil {
+		return errors.Wrap(err, "newClient failed:")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := client.StoreList(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "StoreList was failed:res = %+v", res)
+	}
+	fmt.Println(res)
 
 	return nil
 }
 
-// // ランダムな文字列の生成
+// GET storesの呼び出し
+func (client *Client) StoreList(ctx context.Context) (string, error) {
+	subPath := fmt.Sprintf("/stores")
+	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
+	if err != nil {
+		log.Println("newRequest Error")
+		return "error", err
+	}
+
+	httpResponse, err := client.HTTPClient.Do(httpRequest)
+	if err != nil {
+		log.Println("HTTPClient Do Error")
+		return "error", err
+	}
+	defer httpResponse.Body.Close()
+	res, err := ioutil.ReadAll(httpResponse.Body)
+	if err != nil {
+		log.Println("ReadAll Error")
+		return "error", err
+	}
+	return string(res), nil
+}
+
+// 以下、createの処理
+// ランダムな文字列の生成
 func random() string {
 	var n uint64
 	binary.Read(rand.Reader, binary.LittleEndian, &n)
