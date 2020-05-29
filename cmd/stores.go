@@ -43,7 +43,7 @@ func newStoresListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Get stores list",
-		RunE:  RunStoresListCmd,
+		RunE:  runStoresListCmd,
 	}
 	return cmd
 }
@@ -59,7 +59,7 @@ func newStoresCreateCmd() *cobra.Command {
 
 // 以下、stores listの処理
 // stores list の出力
-func RunStoresListCmd(cmd *cobra.Command, args []string) error {
+func runStoresListCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")
@@ -77,7 +77,7 @@ func RunStoresListCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// GET storesの呼び出し
+// stores list の処理
 func (client *Client) StoreList(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/stores")
 	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
@@ -100,7 +100,6 @@ func (client *Client) StoreList(ctx context.Context) (string, error) {
 	return string(res), nil
 }
 
-// 以下、createの処理
 // ランダムな文字列の生成
 func random() string {
 	var n uint64
@@ -108,7 +107,7 @@ func random() string {
 	return strconv.FormatUint(n, 36)
 }
 
-// stores createの処理
+// stores createの出力
 func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
@@ -127,7 +126,7 @@ func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// POST storesの呼び出し
+// stores createの処理
 func (client *Client) StoreCreate(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/stores")
 
@@ -146,8 +145,6 @@ func (client *Client) StoreCreate(ctx context.Context) (string, error) {
 	httpResponse, err := client.HTTPClient.Do(httpRequest)
 	if err != nil {
 		log.Println("create HTTPClient Do Error")
-		log.Println(httpResponse)
-		log.Println(httpRequest)
 		return "error", err
 	}
 	defer httpResponse.Body.Close()
