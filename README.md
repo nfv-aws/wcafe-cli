@@ -35,20 +35,20 @@ go run main.go stores list
 
 ### コマンドのインストール
 ```
-go build
 go install
+mv $GOPATH/bin/wcafe-cli $GOPATH/bin/wcafe
 ```
 
 ### 使い方
 #### 一覧データの取得の場合
 ```
-wcafe-cli stores list
-wcafe-cli pets　list
-wcafe-cli users　list
+wcafe stores list
+wcafe pets　list
+wcafe users　list
 ```
 #### 新規作成の場合
 ```
-wcafe-cli stores　create
-wcafe-cli pets  create <store_id>
-wcafe-cli users create
+wcafe stores　create
+wcafe pets  create <store_id>
+wcafe users create
 ```
