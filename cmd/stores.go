@@ -1,18 +1,16 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/jmcvetta/napping"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -112,34 +110,53 @@ func random() string {
 
 // stores createの処理
 func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
-	url := "http://" + dns + ":8080/api/v1/stores"
-	log.Println("URL:>", url)
-
-	s := napping.Session{}
-	h := &http.Header{}
-	h.Set("X-Custom-Header", "myvalue")
-	s.Header = h
-
-	var jsonStr = []byte(`
-{
-    "name": "` + random() + `",
-    "tag":"CLI",
-    "address":"Okinawa"
-}`)
-
-	var data map[string]json.RawMessage
-	err := json.Unmarshal(jsonStr, &data)
+	client, err := newDefaultClient()
 	if err != nil {
-		log.Println(err)
+		return errors.Wrap(err, "newClient failed:")
 	}
 
-	resp, err := s.Post(url, &data, nil, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	res, err := client.StoreCreate(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrapf(err, "StoreCreate was failed:res = %+v", res)
 	}
-	log.Println("response Status:", resp.Status())
-	log.Println("response Headers:", resp.HttpResponse().Header)
-	log.Println("response Body:", resp.RawText())
+	fmt.Println(res)
 
 	return nil
+}
+
+// POST storesの呼び出し
+func (client *Client) StoreCreate(ctx context.Context) (string, error) {
+	subPath := fmt.Sprintf("/stores")
+
+	// POSTするデータ
+	jsonStr := `{
+	"name": "` + random() + `",
+    "tag":"CLI",
+    "address":"Okinawa"
+	}`
+	httpRequest, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
+	if err != nil {
+		log.Println("create NewRequest error ")
+		return "error", err
+	}
+
+	httpResponse, err := client.HTTPClient.Do(httpRequest)
+	if err != nil {
+		log.Println("create HTTPClient Do Error")
+		log.Println(httpResponse)
+		log.Println(httpRequest)
+		return "error", err
+	}
+	defer httpResponse.Body.Close()
+	// レスポンスを取得し出力
+	res, err := ioutil.ReadAll(httpResponse.Body)
+	if err != nil {
+		log.Println("ReadAll Error")
+		return "error", err
+	}
+	return string(res), nil
+
 }
