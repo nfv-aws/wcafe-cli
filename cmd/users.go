@@ -5,12 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	math_rand "math/rand"
 	"strconv"
 	"time"
 
-	//	"github.com/jmcvetta/napping"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -60,11 +58,11 @@ func RunUsersListCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := client.UserList(ctx)
+	body, err := client.UserList(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "StoreList was failed:res = %+v", res)
+		return errors.Wrapf(err, "StoreList was failed:body = %+v", body)
 	}
-	fmt.Println(res)
+	fmt.Println(body)
 
 	return nil
 }
@@ -72,26 +70,23 @@ func RunUsersListCmd(cmd *cobra.Command, args []string) error {
 // users listの処理
 func (client *Client) UserList(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/users")
-	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
+	req, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
-		log.Println("newRequest Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
 	}
 
-	httpResponse, err := client.HTTPClient.Do(httpRequest)
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Println("HTTPClient Do Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
 	}
-	defer httpResponse.Body.Close()
+	defer res.Body.Close()
 
-	res, err := ioutil.ReadAll(httpResponse.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Println("ReadAll Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
 
-	return string(res), nil
+	return string(body), nil
 }
 
 // users createの出力
@@ -104,11 +99,11 @@ func RunUsersCreateCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := client.UserCreate(ctx)
+	body, err := client.UserCreate(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "UserCreate was failed:res = %+v", res)
+		return errors.Wrapf(err, "UserCreate was failed:body = %+v", body)
 	}
-	fmt.Println(res)
+	fmt.Println(body)
 
 	return nil
 }
@@ -118,25 +113,25 @@ func (client *Client) UserCreate(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/users")
 	math_rand.Seed(time.Now().UnixNano())
 	random_num := math_rand.Intn(10000)
-	body := `{"number":` + strconv.Itoa(random_num) + `}`
-	httpRequest, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(body)))
+	jsonStr := `{
+		"number":` + strconv.Itoa(random_num) + `
+		
+	}`
+	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
-		log.Println("newRequest Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "NewRequest was failed:req = %+v", req)
 	}
 
-	httpResponse, err := client.HTTPClient.Do(httpRequest)
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Println("HTTPClient Do Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
 	}
-	defer httpResponse.Body.Close()
+	defer res.Body.Close()
 
-	res, err := ioutil.ReadAll(httpResponse.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Println("ReadAll Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
 
-	return string(res), nil
+	return string(body), nil
 }

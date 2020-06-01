@@ -1,18 +1,15 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
-	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/jmcvetta/napping"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -45,7 +42,7 @@ func newStoresListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Get stores list",
-		RunE:  RunStoresListCmd,
+		RunE:  runStoresListCmd,
 	}
 	return cmd
 }
@@ -59,9 +56,8 @@ func newStoresCreateCmd() *cobra.Command {
 	return cmd
 }
 
-// 以下、stores listの処理
 // stores list の出力
-func RunStoresListCmd(cmd *cobra.Command, args []string) error {
+func runStoresListCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")
@@ -70,39 +66,35 @@ func RunStoresListCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := client.StoreList(ctx)
+	body, err := client.StoreList(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "StoreList was failed:res = %+v", res)
+		return errors.Wrapf(err, "StoreList was failed:body = %+v", body)
 	}
-	fmt.Println(res)
+	fmt.Println(body)
 
 	return nil
 }
 
-// GET storesの呼び出し
+// stores list の処理
 func (client *Client) StoreList(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/stores")
-	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
+	req, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
-		log.Println("newRequest Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
 	}
 
-	httpResponse, err := client.HTTPClient.Do(httpRequest)
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Println("HTTPClient Do Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
 	}
-	defer httpResponse.Body.Close()
-	res, err := ioutil.ReadAll(httpResponse.Body)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Println("ReadAll Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
-	return string(res), nil
+	return string(body), nil
 }
 
-// 以下、createの処理
 // ランダムな文字列の生成
 func random() string {
 	var n uint64
@@ -110,36 +102,50 @@ func random() string {
 	return strconv.FormatUint(n, 36)
 }
 
-// stores createの処理
+// stores createの出力
 func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
-	url := "http://" + dns + ":8080/api/v1/stores"
-	log.Println("URL:>", url)
-
-	s := napping.Session{}
-	h := &http.Header{}
-	h.Set("X-Custom-Header", "myvalue")
-	s.Header = h
-
-	var jsonStr = []byte(`
-{
-    "name": "` + random() + `",
-    "tag":"CLI",
-    "address":"Okinawa"
-}`)
-
-	var data map[string]json.RawMessage
-	err := json.Unmarshal(jsonStr, &data)
+	client, err := newDefaultClient()
 	if err != nil {
-		log.Println(err)
+		return errors.Wrap(err, "newClient failed:")
 	}
 
-	resp, err := s.Post(url, &data, nil, nil)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, err := client.StoreCreate(ctx)
 	if err != nil {
-		log.Fatal(err)
+		return errors.Wrapf(err, "StoreCreate was failed:body = %+v", body)
 	}
-	log.Println("response Status:", resp.Status())
-	log.Println("response Headers:", resp.HttpResponse().Header)
-	log.Println("response Body:", resp.RawText())
+	fmt.Println(body)
 
 	return nil
+}
+
+// stores createの処理
+func (client *Client) StoreCreate(ctx context.Context) (string, error) {
+	subPath := fmt.Sprintf("/stores")
+
+	// POSTするデータ
+	jsonStr := `{
+	"name": "` + random() + `",
+    "tag":"CLI",
+    "address":"Okinawa"
+	}`
+	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
+	if err != nil {
+		return "error", errors.Wrapf(err, "NewRequest was failed:req = %+v", req)
+	}
+
+	res, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+	}
+	defer res.Body.Close()
+	// レスポンスを取得し出力
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+	}
+	return string(body), nil
+
 }

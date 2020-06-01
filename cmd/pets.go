@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"encoding/json"
-	"log"
-	"net/http"
-	"strconv"
+	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
+	"time"
 
-	"github.com/jmcvetta/napping"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -49,55 +47,95 @@ func newPetsCreateCmd() *cobra.Command {
 	return cmd
 }
 
-// pets listの処理
+// pets listの出力
 func runPetsListCmd(cmd *cobra.Command, args []string) error {
-	url := "http://" + dns + ":8080/api/v1/pets"
-	req, _ := http.NewRequest("GET", url, nil)
-	client := new(http.Client)
-	resp, _ := client.Do(req)
-	byteArray, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(byteArray))
+	client, err := newDefaultClient()
+	if err != nil {
+		return errors.Wrap(err, "newClient failed:")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, err := client.PetList(ctx)
+	if err != nil {
+		return errors.Wrapf(err, "PetList was failed:body = %+v", body)
+	}
+	fmt.Println(body)
 
 	return nil
 }
 
-// pets createの処理
-func runPetsCreateCmd(cmd *cobra.Command, args []string) error {
-	url := "http://" + dns + ":8080/api/v1/pets"
-	log.Println("URL:>", url)
+// pets listの処理
+func (client *Client) PetList(ctx context.Context) (string, error) {
+	subPath := fmt.Sprintf("/pets")
+	req, err := client.newRequest(ctx, "GET", subPath, nil)
+	if err != nil {
+		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
+	}
 
+	res, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+	}
+	return string(body), nil
+}
+
+// pets createの出力
+func runPetsCreateCmd(cmd *cobra.Command, args []string) error {
 	// store_idが指定されているか確認
 	if len(args) == 0 {
 		return errors.New("store_id is required")
 	}
-	_, err := strconv.Atoi(args[0])
+	store_id := args[0]
 
-	s := napping.Session{}
-	h := &http.Header{}
-	h.Set("X-Custom-Header", "myvalue")
-	s.Header = h
+	client, err := newDefaultClient()
+	if err != nil {
+		return errors.Wrap(err, "newClient failed:")
+	}
 
-	var jsonStr = []byte(`
-{
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, err := client.PetCreate(ctx, store_id)
+	if err != nil {
+		return errors.Wrapf(err, "PetCreate was failed:body = %+v", body)
+	}
+	fmt.Println(body)
+
+	return nil
+}
+
+func (client *Client) PetCreate(ctx context.Context, store_id string) (string, error) {
+	subPath := fmt.Sprintf("/pets")
+
+	// POSTするデータ
+	jsonStr := `{
     "species": "Inu",
     "name":"Pug",
     "age": 3,
-    "store_id":"` + args[0] + `"
-}`)
-
-	var data map[string]json.RawMessage
-	err = json.Unmarshal(jsonStr, &data)
+    "store_id":"` + store_id + `"
+	}`
+	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
-		log.Println(err)
+		return "error", errors.Wrapf(err, "NewRequest was failed:req = %+v", req)
 	}
 
-	resp, err := s.Post(url, &data, nil, nil)
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
 	}
-	log.Println("response Status:", resp.Status())
-	log.Println("response Headers:", resp.HttpResponse().Header)
-	log.Println("response Body:", resp.RawText())
+	defer res.Body.Close()
+	// レスポンスを取得し出力
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+	}
+	return string(body), nil
 
-	return nil
 }
