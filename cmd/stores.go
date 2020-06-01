@@ -7,7 +7,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"strconv"
 	"time"
 
@@ -57,7 +56,6 @@ func newStoresCreateCmd() *cobra.Command {
 	return cmd
 }
 
-// 以下、stores listの処理
 // stores list の出力
 func runStoresListCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
@@ -68,11 +66,11 @@ func runStoresListCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := client.StoreList(ctx)
+	body, err := client.StoreList(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "StoreList was failed:res = %+v", res)
+		return errors.Wrapf(err, "StoreList was failed:body = %+v", body)
 	}
-	fmt.Println(res)
+	fmt.Println(body)
 
 	return nil
 }
@@ -80,24 +78,21 @@ func runStoresListCmd(cmd *cobra.Command, args []string) error {
 // stores list の処理
 func (client *Client) StoreList(ctx context.Context) (string, error) {
 	subPath := fmt.Sprintf("/stores")
-	httpRequest, err := client.newRequest(ctx, "GET", subPath, nil)
+	req, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
-		log.Println("newRequest Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
 	}
 
-	httpResponse, err := client.HTTPClient.Do(httpRequest)
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Println("HTTPClient Do Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
 	}
-	defer httpResponse.Body.Close()
-	res, err := ioutil.ReadAll(httpResponse.Body)
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Println("ReadAll Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
-	return string(res), nil
+	return string(body), nil
 }
 
 // ランダムな文字列の生成
@@ -117,11 +112,11 @@ func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := client.StoreCreate(ctx)
+	body, err := client.StoreCreate(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "StoreCreate was failed:res = %+v", res)
+		return errors.Wrapf(err, "StoreCreate was failed:body = %+v", body)
 	}
-	fmt.Println(res)
+	fmt.Println(body)
 
 	return nil
 }
@@ -136,24 +131,21 @@ func (client *Client) StoreCreate(ctx context.Context) (string, error) {
     "tag":"CLI",
     "address":"Okinawa"
 	}`
-	httpRequest, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
+	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
-		log.Println("create NewRequest error ")
-		return "error", err
+		return "error", errors.Wrapf(err, "NewRequest was failed:req = %+v", req)
 	}
 
-	httpResponse, err := client.HTTPClient.Do(httpRequest)
+	res, err := client.HTTPClient.Do(req)
 	if err != nil {
-		log.Println("create HTTPClient Do Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
 	}
-	defer httpResponse.Body.Close()
+	defer res.Body.Close()
 	// レスポンスを取得し出力
-	res, err := ioutil.ReadAll(httpResponse.Body)
+	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		log.Println("ReadAll Error")
-		return "error", err
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
-	return string(res), nil
+	return string(body), nil
 
 }
