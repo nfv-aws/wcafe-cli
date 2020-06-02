@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestStoreList(t *testing.T) {
+func TestStoreListOk(t *testing.T) {
 	body := `{
 		{"id": "sa5bafac-b35c-4852-82ca-b272cd79f2f3", "name": "Sano Shinichiro", "tag": "CLI", "address": "Okinawa"},
 		{"id": "sa5bafac-b35c-4852-82ca-b272cd79f2f5", "name": "Suzuki Chihiro", "tag": "CLI", "address": "Okinawa"},
@@ -34,7 +34,7 @@ func TestStoreList(t *testing.T) {
 	}
 }
 
-func TestStoreCreate(t *testing.T) {
+func TestStoreCreateOk(t *testing.T) {
 	body := `{"name":"Sano Shinichiro","tag":"CLI", "address":"Okinawa"}`
 
 	mux, mockServerURL := newMockServer()
