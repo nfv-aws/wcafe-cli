@@ -1,7 +1,7 @@
 # wcafe CLI
 
 ## これなに
-HTTPリクエストを自身に送るコマンドを作成するリポジトリ
+HTTPリクエストを自身(localhost)に送るコマンドを作成するリポジトリ
 
 ## リポジトリクローン
 ```
@@ -11,42 +11,39 @@ cd nfv-aws
 git clone git@github.com:nfv-aws/wcafe-api-controller.git
 ```
 
-### パッケージインストール
+## パッケージインストール
 ```
 go get github.com/spf13/cobra
 go get github.com/jmcvetta/napping
 ```
 
-### 環境設定
-EC2のプライベートDNSを追加
-
-```
-vi ~/.bashrc
-
-export WCAFE_VM_PRIVATE_DNS=private_dns
-
-source ~/.bashrc
-```
-
-### 動作確認
+## 動作確認
 ```
 go run main.go stores list
 ```
+
+## UnitTest
+```
+go test -v ./cmd/...
+
+PASS
+ok      github.com/nfv-aws/wcafe-cli/cmd        0.005s
+```
+
+## 使い方
 
 ### コマンドのインストール
 ```
 go install
 mv $GOPATH/bin/wcafe-cli $GOPATH/bin/wcafe
 ```
-
-### 使い方
-#### 一覧データの取得の場合
+### 一覧データの取得の場合
 ```
 wcafe stores list
 wcafe pets　list
 wcafe users　list
 ```
-#### 新規作成の場合
+### 新規作成の場合
 ```
 wcafe stores　create
 wcafe pets  create <store_id>
