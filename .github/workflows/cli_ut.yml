@@ -1,0 +1,47 @@
+name: CLI_Unit_Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  unit_test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Get dependencies
+      run: |
+        go get -v -t -d ./...
+        if [ -f Gopkg.toml ]; then
+            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+            dep ensure
+        fi
+
+    - name: Test
+      run: go test -v ./cmd/...
+      
+    - name: Slack Notification
+      # 前Stepの実行結果を判定
+      # success() or failure() or always()
+      if: failure()
+      uses: rtCamp/action-slack-notify@master
+      env:
+        SLACK_CHANNEL: github-actions-result
+        SLACK_ICON: https://github.com/rtCamp.png?size=48
+        SLACK_MESSAGE: ':fire::fire::fire:${{github.head_ref}}: ${{ job.status }}:fire::fire::fire:'
+        SLACK_TITLE: Action Result （${{github.repository}}）
+        SLACK_USERNAME: rtBot
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
