@@ -9,28 +9,56 @@ import (
 )
 
 func TestPetListOk(t *testing.T) {
-	body := `{
-		{"id": "sa5bafac-b35c-4852-82ca-b272cd79f2f3", "species": "Canine","name": "Shiba lun", "age": 2, "store_id": "6a8a6122-7565-4cdf-b8ba-c2b183e4a177"},
-		{"id": "df2jgodl-f03d-7593-83ya-b645cg64f2f5", "species": "Canine","name": "Shiba lun", "age": 3, "store_id": "6a8a6122-7565-4cdf-b8ba-c2b183e4a177"},
-	}`
-
-	mux, mockServerURL := newMockServer()
-	client := newTestClient(mockServerURL)
-
-	hundlePath := fmt.Sprintf("/api/pets")
-
-	// mockのパターンをセット
-	mux.HandleFunc(hundlePath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, body)
-	})
-
-	list, err := client.PetList(context.Background())
-	if err != nil {
-		t.Fatalf("PetList was failed:list = %+v, err = %+v", list, err)
+	cases := []struct {
+		body string
+	}{
+		{
+			body: `[
+				{
+					"id": "sa5bafac-b35c-4852-82ca-b272cd79f2f3",
+					"species": "Canine",
+					"name": "Shiba lun", 
+					"age": 2,
+					"store_id": "6a8a6122-7565-4cdf-b8ba-c2b183e4a177",
+					"created_time": "2020-05-15T06:14:56Z",
+					"updated_time": "2020-06-15T06:55:28Z",
+					"status": "PENDING_CREATE"
+				},
+				{
+					"id": "df2jgodl-f03d-7593-83ya-b645cg64f2f5", 
+					"species": "Canine",
+					"name": "Shiba lun",
+					"age": 3,
+					"store_id": "6a8a6122-7565-4cdf-b8ba-c2b183e4a177",
+					"created_time": "2020-05-15T06:14:56Z", 
+					"updated_time": "2020-06-15T06:55:28Z", 
+					"status": "PENDING_CREATE"
+				},
+			]`,
+		},
+		{
+			body: "[]",
+		},
 	}
 
-	if !reflect.DeepEqual(list, body) {
-		t.Errorf("list = %+v, body = %+v", list, body)
+	for _, tc := range cases {
+		mux, mockServerURL := newMockServer()
+		client := newTestClient(mockServerURL)
+		hundlePath := fmt.Sprintf("/api/pets")
+
+		// mockのパターンをセット
+		mux.HandleFunc(hundlePath, func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, tc.body)
+		})
+
+		res, err := client.PetList(context.Background())
+		if err != nil {
+			t.Fatalf("PetList was failed:list = %+v, err = %+v", res, err)
+		}
+
+		if !reflect.DeepEqual(res, tc.body) {
+			t.Errorf("list = %+v, body = %+v", res, tc.body)
+		}
 	}
 }
 

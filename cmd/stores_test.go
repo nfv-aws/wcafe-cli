@@ -9,28 +9,54 @@ import (
 )
 
 func TestStoreListOk(t *testing.T) {
-	body := `{
-		{"id": "sa5bafac-b35c-4852-82ca-b272cd79f2f3", "name": "Sano Shinichiro", "tag": "CLI", "address": "Okinawa"},
-		{"id": "sa5bafac-b35c-4852-82ca-b272cd79f2f5", "name": "Suzuki Chihiro", "tag": "CLI", "address": "Okinawa"},
-	}`
-
-	mux, mockServerURL := newMockServer()
-	client := newTestClient(mockServerURL)
-
-	hundlePath := fmt.Sprintf("/api/stores")
-
-	// mockのパターンをセット
-	mux.HandleFunc(hundlePath, func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, body)
-	})
-
-	list, err := client.StoreList(context.Background())
-	if err != nil {
-		t.Fatalf("StoreList was failed:list = %+v, err = %+v", list, err)
+	cases := []struct {
+		body string
+	}{
+		{
+			body: `[
+				{
+					"id": "f7de9114-32c3-48c7-a371-e22c28387495",
+    				"name": "Chiba Pets",
+					"tag": "wcafe",
+    				"address": "Chiba",
+    				"strong_point": "",
+					"created_time": "2020-05-15T06:14:56Z",
+					"updated_time": "2020-06-15T06:55:28Z"
+				},
+				{
+					"id": "fd87c3a2-84f9-4170-a30b-5225cbb1d97e",
+    				"name": "Tokyo Pets",
+					"tag": "wcafe",
+    				"address": "Tokyo",
+    				"strong_point": "",
+					"created_time": "2020-05-15T06:14:56Z", 
+					"updated_time": "2020-06-15T06:55:28Z"
+				},
+			]`,
+		},
+		{
+			body: "[]",
+		},
 	}
 
-	if !reflect.DeepEqual(list, body) {
-		t.Errorf("list = %+v, body = %+v", list, body)
+	for _, tc := range cases {
+		mux, mockServerURL := newMockServer()
+		client := newTestClient(mockServerURL)
+		hundlePath := fmt.Sprintf("/api/stores")
+
+		// mockのパターンをセット
+		mux.HandleFunc(hundlePath, func(w http.ResponseWriter, r *http.Request) {
+			fmt.Fprint(w, tc.body)
+		})
+
+		res, err := client.StoreList(context.Background())
+		if err != nil {
+			t.Fatalf("StoreList was failed:list = %+v, err = %+v", res, err)
+		}
+
+		if !reflect.DeepEqual(res, tc.body) {
+			t.Errorf("list = %+v, body = %+v", res, tc.body)
+		}
 	}
 }
 
