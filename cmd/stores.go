@@ -34,6 +34,7 @@ func newStoresCmd() *cobra.Command {
 	cmd.AddCommand(
 		newStoresListCmd(),
 		newStoresCreateCmd(),
+		newStoresDeleteCmd(),
 	)
 	return cmd
 }
@@ -52,6 +53,15 @@ func newStoresCreateCmd() *cobra.Command {
 		Use:   "create",
 		Short: "Create a store",
 		RunE:  runStoresCreateCmd,
+	}
+	return cmd
+}
+
+func newStoresDeleteCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <store_id>",
+		Short: "Delete a store",
+		RunE:  runStoresDeleteCmd,
 	}
 	return cmd
 }
@@ -148,4 +158,49 @@ func (client *Client) StoreCreate(ctx context.Context) (string, error) {
 	}
 	return string(body), nil
 
+}
+
+// stores deleteの出力
+func runStoresDeleteCmd(cmd *cobra.Command, args []string) error {
+	// store_idが指定されているか確認
+	if len(args) == 0 {
+		return errors.New("store_id is required")
+	}
+	store_id := args[0]
+
+	client, err := newDefaultClient()
+	if err != nil {
+		return errors.Wrap(err, "newClient failed:")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, err := client.StoreDelete(ctx, store_id)
+	if err != nil {
+		return errors.Wrapf(err, "StoreDelete was failed:body = %+v", body)
+	}
+	fmt.Println(body)
+
+	return nil
+}
+
+// stores deleteの処理
+func (client *Client) StoreDelete(ctx context.Context, store_id string) (string, error) {
+	subPath := fmt.Sprintf("/stores/" + store_id)
+	req, err := client.newRequest(ctx, "DELETE", subPath, nil)
+	if err != nil {
+		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
+	}
+
+	res, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+	}
+	return string(body), nil
 }
