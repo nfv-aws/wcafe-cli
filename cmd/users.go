@@ -14,7 +14,7 @@ import (
 )
 
 // usersコマンドの定義
-func newusersCmd() *cobra.Command {
+func newUsersCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "users",
 		Short: "users command",

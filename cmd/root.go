@@ -26,6 +26,6 @@ func newDefaultClient() (*Client, error) {
 func init() {
 	RootCmd.AddCommand(newStoresCmd())
 	RootCmd.AddCommand(newPetsCmd())
-	RootCmd.AddCommand(newusersCmd())
+	RootCmd.AddCommand(newUsersCmd())
 	RootCmd.AddCommand(newClerksCmd())
 }
