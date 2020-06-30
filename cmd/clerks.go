@@ -3,54 +3,51 @@ package cmd
 import (
 	"bytes"
 	"context"
-	"crypto/rand"
-	"encoding/binary"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-// storesコマンドの定義
-func newStoresCmd() *cobra.Command {
+// clerksコマンドの定義
+func newClerksCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "stores",
-		Short: "stores command",
+		Use:   "clerks",
+		Short: "clerks command",
 		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
 	}
 	// サブコマンドの追加
 	cmd.AddCommand(
-		newStoresListCmd(),
-		newStoresCreateCmd(),
+		newClerksListCmd(),
+		newClerksCreateCmd(),
 	)
 	return cmd
 }
 
-func newStoresListCmd() *cobra.Command {
+func newClerksListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
-		Short: "Get stores list",
-		RunE:  runStoresListCmd,
+		Short: "Get clerks list",
+		RunE:  runClerksListCmd,
 	}
 	return cmd
 }
 
-func newStoresCreateCmd() *cobra.Command {
+func newClerksCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create a store",
-		RunE:  runStoresCreateCmd,
+		Short: "Create a clerk",
+		RunE:  runClerksCreateCmd,
 	}
 	return cmd
 }
 
-// stores list の出力
-func runStoresListCmd(cmd *cobra.Command, args []string) error {
+// clerks list の出力
+func runClerksListCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")
@@ -59,18 +56,18 @@ func runStoresListCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	body, err := client.StoreList(ctx)
+	body, err := client.ClerkList(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "StoreList was failed:body = %+v", body)
+		return errors.Wrapf(err, "ClerkList was failed:body = %+v", body)
 	}
 	fmt.Println(body)
 
 	return nil
 }
 
-// stores list の処理
-func (client *Client) StoreList(ctx context.Context) (string, error) {
-	subPath := fmt.Sprintf("/stores")
+// clerks list の処理
+func (client *Client) ClerkList(ctx context.Context) (string, error) {
+	subPath := fmt.Sprintf("/clerks")
 	req, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
 		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
@@ -88,15 +85,8 @@ func (client *Client) StoreList(ctx context.Context) (string, error) {
 	return string(body), nil
 }
 
-// ランダムな文字列の生成
-func random() string {
-	var n uint64
-	binary.Read(rand.Reader, binary.LittleEndian, &n)
-	return strconv.FormatUint(n, 36)
-}
-
-// stores createの出力
-func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
+// clerks createの出力
+func runClerksCreateCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")
@@ -105,24 +95,22 @@ func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	body, err := client.StoreCreate(ctx)
+	body, err := client.ClerkCreate(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "StoreCreate was failed:body = %+v", body)
+		return errors.Wrapf(err, "ClerkCreate was failed:body = %+v", body)
 	}
 	fmt.Println(body)
 
 	return nil
 }
 
-// stores createの処理
-func (client *Client) StoreCreate(ctx context.Context) (string, error) {
-	subPath := fmt.Sprintf("/stores")
+// clerks createの処理
+func (client *Client) ClerkCreate(ctx context.Context) (string, error) {
+	subPath := fmt.Sprintf("/clerks")
 
 	// POSTするデータ
 	jsonStr := `{
-	"name": "` + random() + `",
-    "tag":"CLI",
-    "address":"Okinawa"
+	"Name": "climan"
 	}`
 	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
@@ -140,5 +128,4 @@ func (client *Client) StoreCreate(ctx context.Context) (string, error) {
 		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
 	return string(body), nil
-
 }

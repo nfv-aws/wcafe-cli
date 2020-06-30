@@ -21,3 +21,11 @@ func newDefaultClient() (*Client, error) {
 	httpClient := &http.Client{}
 	return newClient(endpointURL, httpClient)
 }
+
+// コマンドの追加
+func init() {
+	RootCmd.AddCommand(newStoresCmd())
+	RootCmd.AddCommand(newPetsCmd())
+	RootCmd.AddCommand(newusersCmd())
+	RootCmd.AddCommand(newClerksCmd())
+}
