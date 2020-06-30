@@ -90,3 +90,25 @@ func TestUserCreateOk(t *testing.T) {
 		t.Errorf("create = %+v, body = %+v", create, body)
 	}
 }
+
+func TestUserDeleteOk(t *testing.T) {
+	body := `{}`
+
+	mux, mockServerURL := newMockServer()
+	client := newTestClient(mockServerURL)
+	hundlePath := fmt.Sprintf("/api/users/")
+
+	// Mockパターンをセット
+	mux.HandleFunc(hundlePath, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, body)
+	})
+
+	delete, err := client.UserDelete(context.Background(), "6a8a6122-7565-4cdf-b8ba-c2b183e4a177")
+	if err != nil {
+		t.Fatalf("UserDelete was failed:create = %+v, err = %+v", delete, err)
+	}
+
+	if !reflect.DeepEqual(delete, body) {
+		t.Errorf("delete = %+v, body = %+v", delete, body)
+	}
+}

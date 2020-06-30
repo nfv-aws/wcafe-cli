@@ -26,6 +26,7 @@ func newusersCmd() *cobra.Command {
 	cmd.AddCommand(
 		newUsersListCmd(),
 		newUsersCreateCmd(),
+		newUsersDeleteCmd(),
 	)
 	return cmd
 }
@@ -48,6 +49,15 @@ func newUsersCreateCmd() *cobra.Command {
 	return cmd
 }
 
+func newUsersDeleteCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete <user_id>",
+		Short: "Delete a user",
+		RunE:  runUsersDeleteCmd,
+	}
+	return cmd
+}
+
 // users listの出力
 func RunUsersListCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
@@ -60,7 +70,7 @@ func RunUsersListCmd(cmd *cobra.Command, args []string) error {
 
 	body, err := client.UserList(ctx)
 	if err != nil {
-		return errors.Wrapf(err, "StoreList was failed:body = %+v", body)
+		return errors.Wrapf(err, "UserList was failed:body = %+v", body)
 	}
 	fmt.Println(body)
 
@@ -133,5 +143,50 @@ func (client *Client) UserCreate(ctx context.Context) (string, error) {
 		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
 
+	return string(body), nil
+}
+
+// users deleteの出力
+func runUsersDeleteCmd(cmd *cobra.Command, args []string) error {
+	// user_idが指定されているか確認
+	if len(args) == 0 {
+		return errors.New("user_id is required")
+	}
+	user_id := args[0]
+
+	client, err := newDefaultClient()
+	if err != nil {
+		return errors.Wrap(err, "newClient failed:")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, err := client.UserDelete(ctx, user_id)
+	if err != nil {
+		return errors.Wrapf(err, "UserDelete was failed:body = %+v", body)
+	}
+	fmt.Println(body)
+
+	return nil
+}
+
+// users deleteの処理
+func (client *Client) UserDelete(ctx context.Context, user_id string) (string, error) {
+	subPath := fmt.Sprintf("/users/" + user_id)
+	req, err := client.newRequest(ctx, "DELETE", subPath, nil)
+	if err != nil {
+		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
+	}
+
+	res, err := client.HTTPClient.Do(req)
+	if err != nil {
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+	}
+	defer res.Body.Close()
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+	}
 	return string(body), nil
 }
