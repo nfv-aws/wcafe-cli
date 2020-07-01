@@ -14,13 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// コマンドの追加
-func init() {
-	RootCmd.AddCommand(newStoresCmd())
-	RootCmd.AddCommand(newPetsCmd())
-	RootCmd.AddCommand(newusersCmd())
-}
-
 // storesコマンドの定義
 func newStoresCmd() *cobra.Command {
 	cmd := &cobra.Command{
