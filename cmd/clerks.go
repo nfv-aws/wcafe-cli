@@ -37,23 +37,15 @@ func newClerksListCmd() *cobra.Command {
 	return cmd
 }
 
-type Clerks struct {
-	Name string
-}
+var Name string
 
 func newClerksCreateCmd() *cobra.Command {
-
-	var (
-		cl = &Clerks{}
-	)
 	cmd := &cobra.Command{
 		Use:   "create [flag]",
 		Short: "Create a clerk",
-		Run: func(cmd *cobra.Command, args []string) {
-			runClerksCreateOpt(cmd, cl)
-		},
+		RunE:  runClerksCreateCmd,
 	}
-	cmd.Flags().StringVarP(&cl.Name, "name", "n", "climan", "change name")
+	cmd.Flags().StringVarP(&Name, "name", "n", "climan", "change name")
 	return cmd
 }
 
@@ -96,18 +88,8 @@ func (client *Client) ClerkList(ctx context.Context) (string, error) {
 	return string(body), nil
 }
 
-// create時のオプション有無の判断
-func runClerksCreateOpt(cmd *cobra.Command, opt *Clerks) {
-	if len(opt.Name) != 0 {
-		runClerksCreateCmd(cmd, opt.Name)
-	} else {
-		opt.Name = "climan"
-		runClerksCreateCmd(cmd, opt.Name)
-	}
-}
-
 // clerks createの出力
-func runClerksCreateCmd(cmd *cobra.Command, optName string) error {
+func runClerksCreateCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")
@@ -115,8 +97,7 @@ func runClerksCreateCmd(cmd *cobra.Command, optName string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	body, err := client.ClerkCreate(ctx, optName)
+	body, err := client.ClerkCreate(ctx, Name)
 	if err != nil {
 		return errors.Wrapf(err, "ClerkCreate was failed:body = %+v", body)
 	}
@@ -126,11 +107,11 @@ func runClerksCreateCmd(cmd *cobra.Command, optName string) error {
 }
 
 // clerks createの処理
-func (client *Client) ClerkCreate(ctx context.Context, optName string) (string, error) {
+func (client *Client) ClerkCreate(ctx context.Context, Name string) (string, error) {
 	subPath := fmt.Sprintf("/clerks")
 	// POSTするデータ
 	jsonStr := `{
-	"Name": "` + optName + `"
+	"Name": "` + Name + `"
 	}`
 	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
