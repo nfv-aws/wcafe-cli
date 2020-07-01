@@ -62,7 +62,7 @@ func TestClerkCreateOk(t *testing.T) {
 		fmt.Fprint(w, body)
 	})
 
-	create, err := client.ClerkCreate(context.Background())
+	create, err := client.ClerkCreate(context.Background(), "sasaki")
 	if err != nil {
 		t.Fatalf("ClerkCreate was failed:create = %+v, err = %+v", create, err)
 	}
