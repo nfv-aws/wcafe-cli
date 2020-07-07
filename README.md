@@ -46,9 +46,9 @@ wcafe clerks list
 ```
 ### 新規作成の場合
 ```
-wcafe stores　create
-wcafe pets  create <store_id>
+wcafe stores create {-n(--name),-t(--tag),-a(--address),-s(--strongPoint)}
+wcafe pets create <store_id>
 wcafe users create
-wcafe clerks create -n(--name) hogehoge
+wcafe clerks create {-n(--name)}
 (オプションは指定しなくても利用可)
 ```

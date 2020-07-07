@@ -8,6 +8,13 @@ import (
 	"testing"
 )
 
+var (
+	cl = &Clerk{
+		NameId: "cl5bafac-b35c-4852-82ca-b272cd79f2f3",
+		Name:   "sasaki",
+	}
+)
+
 func TestClerkListOk(t *testing.T) {
 	cases := []struct {
 		body string
@@ -15,12 +22,12 @@ func TestClerkListOk(t *testing.T) {
 		{
 			body: `[
 				{
-					"NameId": "cc5bafac-b35c-4852-82ca-b272cd79f2f3",
-					"Name": "kato"
+			      	"NameId": "cc5bafac-b35c-4852-82ca-b272cd79f2f3",
+-                   "Name": "kato"
 				},
 				{
 					"NameId": "cc2jgodl-f03d-7593-83ya-b645cg64f2f5", 
-					"Name": "kosaka"
+-                   "Name": "kosaka"
 				}
 			]`,
 		},
@@ -51,7 +58,7 @@ func TestClerkListOk(t *testing.T) {
 }
 
 func TestClerkCreateOk(t *testing.T) {
-	body := `{"NameId": "sa5bafac-b35c-4852-82ca-b272cd79f2f3", "Name": "sasaki"}`
+	body := `{"NameId": "` + cl.NameId + `", "Name": "` + cl.Name + `"}`
 
 	mux, mockServerURL := newMockServer()
 	client := newTestClient(mockServerURL)
@@ -62,7 +69,7 @@ func TestClerkCreateOk(t *testing.T) {
 		fmt.Fprint(w, body)
 	})
 
-	create, err := client.ClerkCreate(context.Background(), "sasaki")
+	create, err := client.ClerkCreate(context.Background(), cl)
 	if err != nil {
 		t.Fatalf("ClerkCreate was failed:create = %+v, err = %+v", create, err)
 	}

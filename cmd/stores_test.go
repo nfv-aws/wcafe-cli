@@ -6,6 +6,20 @@ import (
 	"net/http"
 	"reflect"
 	"testing"
+	"time"
+)
+
+var (
+	st = &Store{
+		Id:          "sa5bafac-b35c-4852-82ca-b272cd79f2f3",
+		Name:        "store_controller_test",
+		Tag:         "Board game",
+		Address:     "Shinagawa",
+		StrongPoint: "helpful",
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+	now = time.Now()
 )
 
 func TestStoreListOk(t *testing.T) {
@@ -15,22 +29,22 @@ func TestStoreListOk(t *testing.T) {
 		{
 			body: `[
 				{
-					"id": "f7de9114-32c3-48c7-a371-e22c28387495",
-    				"name": "Chiba Pets",
-					"tag": "wcafe",
-    				"address": "Chiba",
-    				"strong_point": "",
+				    "id": "f7de9114-32c3-48c7-a371-e22c28387495",
+-                   "name": "Chiba Pets",
+-                   "tag": "wcafe",
+-                   "address": "Chiba",
+-                   "strong_point": "",
 					"created_time": "2020-05-15T06:14:56Z",
 					"updated_time": "2020-06-15T06:55:28Z"
 				},
 				{
-					"id": "fd87c3a2-84f9-4170-a30b-5225cbb1d97e",
-    				"name": "Tokyo Pets",
-					"tag": "wcafe",
-    				"address": "Tokyo",
-    				"strong_point": "",
-					"created_time": "2020-05-15T06:14:56Z", 
-					"updated_time": "2020-06-15T06:55:28Z"
+				    "id": "fd87c3a2-84f9-4170-a30b-5225cbb1d97e",
+-                   "name": "Tokyo Pets",
+-                   "tag": "wcafe",
+-                   "address": "Tokyo",
+-                   "strong_point": "",
+					"created_time":"2020-05-15T06:14:56Z",
+					"updated_time":"2020-06-15T06:55:28Z"
 				},
 			]`,
 		},
@@ -61,7 +75,7 @@ func TestStoreListOk(t *testing.T) {
 }
 
 func TestStoreCreateOk(t *testing.T) {
-	body := `{"name":"Sano Shinichiro","tag":"CLI", "address":"Okinawa"}`
+	body := `{"name":"` + st.Name + `","tag":"` + st.Tag + `", "address":"` + st.Address + `"}`
 
 	mux, mockServerURL := newMockServer()
 	client := newTestClient(mockServerURL)
@@ -72,7 +86,7 @@ func TestStoreCreateOk(t *testing.T) {
 		fmt.Fprint(w, body)
 	})
 
-	create, err := client.StoreCreate(context.Background())
+	create, err := client.StoreCreate(context.Background(), st)
 	if err != nil {
 		t.Fatalf("StoreCreate was failed:create = %+v, err = %+v", create, err)
 	}
