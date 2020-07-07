@@ -9,6 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/nfv-aws/wcafe-api-controller/entity"
 )
 
 // clerksコマンドの定義
@@ -37,7 +39,9 @@ func newClerksListCmd() *cobra.Command {
 	return cmd
 }
 
-var Name string
+type Clerk entity.Clerk
+
+var clerk = &Clerk{}
 
 func newClerksCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -45,7 +49,7 @@ func newClerksCreateCmd() *cobra.Command {
 		Short: "Create a clerk",
 		RunE:  runClerksCreateCmd,
 	}
-	cmd.Flags().StringVarP(&Name, "name", "n", "climan", "change name")
+	cmd.Flags().StringVarP(&clerk.Name, "name", "n", "climan", "change name")
 	return cmd
 }
 
@@ -97,7 +101,7 @@ func runClerksCreateCmd(cmd *cobra.Command, args []string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	body, err := client.ClerkCreate(ctx, Name)
+	body, err := client.ClerkCreate(ctx, clerk)
 	if err != nil {
 		return errors.Wrapf(err, "ClerkCreate was failed:body = %+v", body)
 	}
@@ -107,11 +111,11 @@ func runClerksCreateCmd(cmd *cobra.Command, args []string) error {
 }
 
 // clerks createの処理
-func (client *Client) ClerkCreate(ctx context.Context, Name string) (string, error) {
+func (client *Client) ClerkCreate(ctx context.Context, clerk *Clerk) (string, error) {
 	subPath := fmt.Sprintf("/clerks")
 	// POSTするデータ
 	jsonStr := `{
-	"Name": "` + Name + `"
+	"Name": "` + clerk.Name + `"
 	}`
 	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {

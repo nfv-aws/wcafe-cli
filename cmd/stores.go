@@ -12,6 +12,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+
+	"github.com/nfv-aws/wcafe-api-controller/entity"
 )
 
 // storesコマンドの定義
@@ -41,12 +43,27 @@ func newStoresListCmd() *cobra.Command {
 	return cmd
 }
 
+type Store entity.Store
+
+var store = &Store{}
+
+// ランダムな文字列の生成
+func random() string {
+	var n uint64
+	binary.Read(rand.Reader, binary.LittleEndian, &n)
+	return strconv.FormatUint(n, 36)
+}
+
 func newStoresCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create",
+		Use:   "create [options]",
 		Short: "Create a store",
 		RunE:  runStoresCreateCmd,
 	}
+	cmd.Flags().StringVarP(&store.Name, "name", "n", random(), "change name")
+	cmd.Flags().StringVarP(&store.Tag, "tag", "t", "CLI Tag", "change tag")
+	cmd.Flags().StringVarP(&store.Address, "address", "a", "CLI Address", "change address")
+	cmd.Flags().StringVarP(&store.StrongPoint, "strongPoint", "s", "CLI StrongPoint", "change strongPoint")
 	return cmd
 }
 
@@ -98,13 +115,6 @@ func (client *Client) StoreList(ctx context.Context) (string, error) {
 	return string(body), nil
 }
 
-// ランダムな文字列の生成
-func random() string {
-	var n uint64
-	binary.Read(rand.Reader, binary.LittleEndian, &n)
-	return strconv.FormatUint(n, 36)
-}
-
 // stores createの出力
 func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
@@ -115,7 +125,7 @@ func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	body, err := client.StoreCreate(ctx)
+	body, err := client.StoreCreate(ctx, store)
 	if err != nil {
 		return errors.Wrapf(err, "StoreCreate was failed:body = %+v", body)
 	}
@@ -125,14 +135,15 @@ func runStoresCreateCmd(cmd *cobra.Command, args []string) error {
 }
 
 // stores createの処理
-func (client *Client) StoreCreate(ctx context.Context) (string, error) {
+func (client *Client) StoreCreate(ctx context.Context, store *Store) (string, error) {
 	subPath := fmt.Sprintf("/stores")
 
 	// POSTするデータ
 	jsonStr := `{
-	"name": "` + random() + `",
-    "tag":"CLI",
-    "address":"Okinawa"
+	"name": "` + store.Name + `",
+    "tag":"` + store.Tag + `",
+    "address":"` + store.Address + `",
+    "strong_point":"` + store.StrongPoint + `"
 	}`
 	req, err := client.newRequest(ctx, "POST", subPath, bytes.NewBuffer([]byte(jsonStr)))
 	if err != nil {
