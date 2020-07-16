@@ -98,7 +98,7 @@ func TestPetDeleteOk(t *testing.T) {
 
 	delete, err := client.PetDelete(context.Background(), "6a8a6122-7565-4cdf-b8ba-c2b183e4a177")
 	if err != nil {
-		t.Fatalf("PetDelete was failed:create = %+v, err = %+v", delete, err)
+		t.Fatalf("PetDelete was failed:delete = %+v, err = %+v", delete, err)
 	}
 
 	if !reflect.DeepEqual(delete, body) {

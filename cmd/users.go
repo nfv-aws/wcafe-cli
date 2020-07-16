@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	math_rand "math/rand"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -174,19 +175,38 @@ func runUsersDeleteCmd(cmd *cobra.Command, args []string) error {
 // users deleteの処理
 func (client *Client) UserDelete(ctx context.Context, user_id string) (string, error) {
 	subPath := fmt.Sprintf("/users/" + user_id)
-	req, err := client.newRequest(ctx, "DELETE", subPath, nil)
-	if err != nil {
-		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
-	}
 
-	res, err := client.HTTPClient.Do(req)
+	// idが存在するか確認
+	get_req, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
-		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+		return "error", errors.Wrapf(err, "newRequest was faild:get_req= %+v", get_req)
 	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	get_res, err := client.HTTPClient.Do(get_req)
 	if err != nil {
-		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:get_res=%+v", get_res)
 	}
-	return string(body), nil
+	defer get_res.Body.Close()
+	data, err := ioutil.ReadAll(get_res.Body)
+
+	// idが存在する場合はデータを削除
+	if string(data) != "" {
+		req, err := client.newRequest(ctx, "DELETE", subPath, nil)
+		if err != nil {
+			return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
+		}
+		res, err := client.HTTPClient.Do(req)
+		if err != nil {
+			return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+		}
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+		}
+		fmt.Println("user delete success")
+		return string(body), nil
+	} else {
+		fmt.Println(http.StatusNotFound)
+		return "NotFound", nil
+	}
 }

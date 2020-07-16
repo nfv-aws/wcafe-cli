@@ -10,8 +10,8 @@ import (
 
 var (
 	cl = &Clerk{
-		NameId: "cl5bafac-b35c-4852-82ca-b272cd79f2f3",
-		Name:   "sasaki",
+		Id:   "cl5bafac-b35c-4852-82ca-b272cd79f2f3",
+		Name: "sasaki",
 	}
 )
 
@@ -22,11 +22,11 @@ func TestClerkListOk(t *testing.T) {
 		{
 			body: `[
 				{
-			      	"NameId": "cc5bafac-b35c-4852-82ca-b272cd79f2f3",
+			      	"Id": "cc5bafac-b35c-4852-82ca-b272cd79f2f3",
 -                   "Name": "kato"
 				},
 				{
-					"NameId": "cc2jgodl-f03d-7593-83ya-b645cg64f2f5", 
+					"Id": "cc2jgodl-f03d-7593-83ya-b645cg64f2f5", 
 -                   "Name": "kosaka"
 				}
 			]`,
@@ -58,7 +58,7 @@ func TestClerkListOk(t *testing.T) {
 }
 
 func TestClerkCreateOk(t *testing.T) {
-	body := `{"NameId": "` + cl.NameId + `", "Name": "` + cl.Name + `"}`
+	body := `{"Id": "` + cl.Id + `", "Name": "` + cl.Name + `"}`
 
 	mux, mockServerURL := newMockServer()
 	client := newTestClient(mockServerURL)
