@@ -52,3 +52,10 @@ wcafe users create
 wcafe clerks create {-n(--name)}
 (オプションは指定しなくても利用可)
 ```
+
+### 削除の場合
+```
+wcafe stores delete <store_id>
+wcafe pets delete <pet_id>
+wcafe users delete <user_id>
+```

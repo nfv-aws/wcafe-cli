@@ -108,9 +108,14 @@ func TestStoreDeleteOk(t *testing.T) {
 		fmt.Fprint(w, body)
 	})
 
+	// get, err := client.StoreDelete(context.Background(), "777")
+	// if err != nil {
+	// 	t.Fatalf("StoreDelete was failed:get = %+v, err = %+v", get, err)
+	// }
+
 	delete, err := client.StoreDelete(context.Background(), "6a8a6122-7565-4cdf-b8ba-c2b183e4a177")
 	if err != nil {
-		t.Fatalf("StoreDelete was failed:create = %+v, err = %+v", delete, err)
+		t.Fatalf("StoreDelete was failed:delete = %+v, err = %+v", delete, err)
 	}
 
 	if !reflect.DeepEqual(delete, body) {

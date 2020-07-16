@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
@@ -146,8 +147,12 @@ func (client *Client) PetCreate(ctx context.Context, store_id string) (string, e
 	if err != nil {
 		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
 	}
-	return string(body), nil
-
+	if string(body) != "" {
+		return string(body), nil
+	} else {
+		fmt.Println(http.StatusBadRequest)
+		return "BadRequest", nil
+	}
 }
 
 // pets deleteの出力
@@ -178,19 +183,38 @@ func runPetsDeleteCmd(cmd *cobra.Command, args []string) error {
 // pets deleteの処理
 func (client *Client) PetDelete(ctx context.Context, pet_id string) (string, error) {
 	subPath := fmt.Sprintf("/pets/" + pet_id)
-	req, err := client.newRequest(ctx, "DELETE", subPath, nil)
-	if err != nil {
-		return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
-	}
 
-	res, err := client.HTTPClient.Do(req)
+	// idが存在するか確認
+	get_req, err := client.newRequest(ctx, "GET", subPath, nil)
 	if err != nil {
-		return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+		return "error", errors.Wrapf(err, "newRequest was faild:get_req= %+v", get_req)
 	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	get_res, err := client.HTTPClient.Do(get_req)
 	if err != nil {
-		return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:get_res=%+v", get_res)
 	}
-	return string(body), nil
+	defer get_res.Body.Close()
+	data, err := ioutil.ReadAll(get_res.Body)
+
+	// idが存在する場合はデータを削除
+	if string(data) != "" {
+		req, err := client.newRequest(ctx, "DELETE", subPath, nil)
+		if err != nil {
+			return "error", errors.Wrapf(err, "newRequest was faild:req= %+v", req)
+		}
+		res, err := client.HTTPClient.Do(req)
+		if err != nil {
+			return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+		}
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+		}
+		fmt.Println("pet delete success")
+		return string(body), nil
+	} else {
+		fmt.Println(http.StatusNotFound)
+		return "NotFound", nil
+	}
 }
