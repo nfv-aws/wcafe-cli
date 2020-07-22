@@ -27,6 +27,7 @@ func newUsersCmd() *cobra.Command {
 	cmd.AddCommand(
 		newUsersListCmd(),
 		newUsersCreateCmd(),
+		newUsersUpdateCmd(),
 		newUsersDeleteCmd(),
 	)
 	return cmd
@@ -36,7 +37,7 @@ func newUsersListCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list",
 		Short: "Get pets list",
-		RunE:  RunUsersListCmd,
+		RunE:  runUsersListCmd,
 	}
 	return cmd
 }
@@ -45,7 +46,16 @@ func newUsersCreateCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
 		Short: "Create a user",
-		RunE:  RunUsersCreateCmd,
+		RunE:  runUsersCreateCmd,
+	}
+	return cmd
+}
+
+func newUsersUpdateCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update <user_id>",
+		Short: "Update a user",
+		RunE:  runUsersUpdateCmd,
 	}
 	return cmd
 }
@@ -60,7 +70,7 @@ func newUsersDeleteCmd() *cobra.Command {
 }
 
 // users listの出力
-func RunUsersListCmd(cmd *cobra.Command, args []string) error {
+func runUsersListCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")
@@ -101,7 +111,7 @@ func (client *Client) UserList(ctx context.Context) (string, error) {
 }
 
 // users createの出力
-func RunUsersCreateCmd(cmd *cobra.Command, args []string) error {
+func runUsersCreateCmd(cmd *cobra.Command, args []string) error {
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")
@@ -145,6 +155,83 @@ func (client *Client) UserCreate(ctx context.Context) (string, error) {
 	}
 
 	return string(body), nil
+}
+
+// users updateの出力
+func runUsersUpdateCmd(cmd *cobra.Command, args []string) error {
+	// user_idが指定されているか確認
+	if len(args) == 0 {
+		return errors.New("user_id is required")
+	}
+	user_id := args[0]
+
+	client, err := newDefaultClient()
+	if err != nil {
+		return errors.Wrap(err, "newClient failed:")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	body, err := client.UserUpdate(ctx, user_id)
+	if err != nil {
+		return errors.Wrapf(err, "UserUpdate was failed:body = %+v", body)
+	}
+	fmt.Println(body)
+
+	return nil
+}
+
+func (client *Client) UserUpdate(ctx context.Context, user_id string) (string, error) {
+	subPath := fmt.Sprintf("/users/" + user_id)
+
+	// idが存在するか確認
+	get_req, err := client.newRequest(ctx, "GET", subPath, nil)
+	if err != nil {
+		return "error", errors.Wrapf(err, "newRequest was faild:get_req= %+v", get_req)
+	}
+
+	get_res, err := client.HTTPClient.Do(get_req)
+	if err != nil {
+		return "error", errors.Wrapf(err, "HTTPClient Do was faild:get_res=%+v", get_res)
+	}
+	defer get_res.Body.Close()
+	data, err := ioutil.ReadAll(get_res.Body)
+
+	// POSTするデータ
+	jsonStr := `{
+    "name": "Hinata",
+    "address": "Yokohama",
+    "email": "test@example.com"
+	}`
+	// idが存在する場合はデータを削除
+	if string(data) != "" {
+
+		req, err := client.newRequest(ctx, "PATCH", subPath, bytes.NewBuffer([]byte(jsonStr)))
+		if err != nil {
+			return "error", errors.Wrapf(err, "NewRequest was failed:req = %+v", req)
+		}
+
+		res, err := client.HTTPClient.Do(req)
+		if err != nil {
+			return "error", errors.Wrapf(err, "HTTPClient Do was faild:res=%+v", res)
+		}
+		defer res.Body.Close()
+		// レスポンスを取得し出力
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return "error", errors.Wrapf(err, "ReadAll was faild:body=%+v", body)
+		}
+		if string(body) != "" {
+			return string(body), nil
+		} else {
+			fmt.Println(http.StatusBadRequest)
+			return "BadRequest", nil
+		}
+	} else {
+		fmt.Println(http.StatusNotFound)
+		return "NotFound", nil
+	}
 }
 
 // users deleteの出力

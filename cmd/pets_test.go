@@ -84,6 +84,28 @@ func TestPetCreateOk(t *testing.T) {
 	}
 }
 
+func TestPetUpdateOk(t *testing.T) {
+	body := `{"id": "sa5bafac-b35c-4852-82ca-b272cd79f2f3", "species": "Cat","name": "Persian", "age": 2, "store_id": "6a8a6122-7565-4cdf-b8ba-c2b183e4a177"}`
+
+	mux, mockServerURL := newMockServer()
+	client := newTestClient(mockServerURL)
+	hundlePath := fmt.Sprintf("/api/pets/")
+
+	// Mockパターンをセット
+	mux.HandleFunc(hundlePath, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, body)
+	})
+
+	update, err := client.PetUpdate(context.Background(), "sa5bafac-b35c-4852-82ca-b272cd79f2f3")
+	if err != nil {
+		t.Fatalf("PetUpdate was failed:create = %+v, err = %+v", update, err)
+	}
+
+	if !reflect.DeepEqual(update, body) {
+		t.Errorf("update = %+v, body = %+v", update, body)
+	}
+}
+
 func TestPetDeleteOk(t *testing.T) {
 	body := `{}`
 

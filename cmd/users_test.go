@@ -91,6 +91,28 @@ func TestUserCreateOk(t *testing.T) {
 	}
 }
 
+func TestUSerUpdateOk(t *testing.T) {
+	body := `{"name": "Hinata", "address": "Yokohama", "email": "test@example.com"}`
+
+	mux, mockServerURL := newMockServer()
+	client := newTestClient(mockServerURL)
+	hundlePath := fmt.Sprintf("/api/users/")
+
+	// Mockパターンをセット
+	mux.HandleFunc(hundlePath, func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, body)
+	})
+
+	update, err := client.UserUpdate(context.Background(), "fd87c3a2-84f9-4170-a30b-5225cbb1d97e")
+	if err != nil {
+		t.Fatalf("UserUpdate was failed:create = %+v, err = %+v", update, err)
+	}
+
+	if !reflect.DeepEqual(update, body) {
+		t.Errorf("update = %+v, body = %+v", update, body)
+	}
+}
+
 func TestUserDeleteOk(t *testing.T) {
 	body := `{}`
 
