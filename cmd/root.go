@@ -2,19 +2,32 @@ package cmd
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/spf13/cobra"
 )
 
-var (
-	// ルートコマンドの設定
-	RootCmd = &cobra.Command{
+func NewCmdRoot() *cobra.Command {
+	cmd := &cobra.Command{
 		Use: "wcafe",
-		Run: func(cmd *cobra.Command, args []string) {
-			cmd.Usage()
-		},
 	}
-)
+	// サブコマンドの追加
+	cmd.AddCommand(newStoresCmd())
+	cmd.AddCommand(newPetsCmd())
+	cmd.AddCommand(newUsersCmd())
+	cmd.AddCommand(newClerksCmd())
+	return cmd
+}
+
+func Execute() {
+	cmd := NewCmdRoot()
+	cmd.SetOutput(os.Stdout)
+	if err := cmd.Execute(); err != nil {
+		cmd.SetOutput(os.Stderr)
+		cmd.Println(err)
+		os.Exit(1)
+	}
+}
 
 func newDefaultClient() (*Client, error) {
 	endpointURL := "http://localhost:8080/api/v1"
@@ -24,8 +37,4 @@ func newDefaultClient() (*Client, error) {
 
 // コマンドの追加
 func init() {
-	RootCmd.AddCommand(newStoresCmd())
-	RootCmd.AddCommand(newPetsCmd())
-	RootCmd.AddCommand(newUsersCmd())
-	RootCmd.AddCommand(newClerksCmd())
 }

@@ -94,6 +94,7 @@ func (client *Client) ClerkList(ctx context.Context) (string, error) {
 
 // clerks createの出力
 func runClerksCreateCmd(cmd *cobra.Command, args []string) error {
+	cmd.Printf("Create a clerk called: optstr: %s", clerk.Name)
 	client, err := newDefaultClient()
 	if err != nil {
 		return errors.Wrap(err, "newClient failed:")

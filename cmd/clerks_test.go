@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -76,5 +78,30 @@ func TestClerkCreateOk(t *testing.T) {
 
 	if !reflect.DeepEqual(create, body) {
 		t.Errorf("create = %+v, body = %+v", create, body)
+	}
+}
+
+func TestClerkCreateOption(t *testing.T) {
+	cases := []struct {
+		command string
+		want    string
+	}{
+		{command: "wcafe clerks create", want: "Create a clerk called: optstr: climan"},
+		{command: "wcafe clerks create --name test", want: "Create a clerk called: optstr: test"},
+	}
+
+	for _, c := range cases {
+		buf := new(bytes.Buffer)
+		cmd := NewCmdRoot()
+		cmd.SetOutput(buf)
+		cmdArgs := strings.Split(c.command, " ")
+		fmt.Printf("cmdArgs %+v\n", cmdArgs)
+		cmd.SetArgs(cmdArgs[1:])
+		cmd.Execute()
+
+		get := buf.String()
+		if c.want != get {
+			t.Errorf("unexpected response: want:%+v, get:%+v", c.want, get)
+		}
 	}
 }
