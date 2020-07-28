@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strings"
 	"testing"
+
+	"github.com/agiledragon/gomonkey"
+	"github.com/mattn/go-shellwords"
 )
 
 var (
@@ -90,15 +92,22 @@ func TestClerkCreateOption(t *testing.T) {
 		{command: "wcafe clerks create --name test", want: "Create a clerk called: optstr: test"},
 	}
 
+	client, err := newDefaultClient()
+	MockReturnStr := "Mock return value from clerk create"
+	gomonkey.ApplyMethod(reflect.TypeOf(client), "ClerkCreate", func(client *Client, ctx context.Context, clerk *Clerk) (string, error) {
+		return MockReturnStr, err
+	})
+
 	for _, c := range cases {
 		buf := new(bytes.Buffer)
 		cmd := NewCmdRoot()
 		cmd.SetOutput(buf)
-		cmdArgs := strings.Split(c.command, " ")
-		fmt.Printf("cmdArgs %+v\n", cmdArgs)
+		cmdArgs, err := shellwords.Parse(c.command)
+		if err != nil {
+			t.Fatalf("args parse error: %+v\n", err)
+		}
 		cmd.SetArgs(cmdArgs[1:])
 		cmd.Execute()
-
 		get := buf.String()
 		if c.want != get {
 			t.Errorf("unexpected response: want:%+v, get:%+v", c.want, get)
